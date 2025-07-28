@@ -38,7 +38,7 @@ func BooksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func bookDeleteHandler(w http.ResponseWriter, r *http.Request) {
+func BookDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -106,7 +106,7 @@ type Book struct {
  
 func main() { 
     http.HandleFunc("/books", BooksHandler)       // GET & POST 
-    http.HandleFunc("/books/", bookDeleteHandler) // DELETE 
+    http.HandleFunc("/books/", BookDeleteHandler) // DELETE 
     http.Handle("/", http.FileServer(http.Dir("./ui"))) 
     log.Fatal(http.ListenAndServe(":5000", nil)) 
 }

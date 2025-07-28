@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	//"strconv"
+	"strconv"
 	"strings"
 	"testing"
 	"github.com/braydonlowe/TestMeIfYouCan/api"
@@ -87,5 +87,51 @@ func TestCreateBook_InvalidJSON(t *testing.T) {
 
 	if w.Result().StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected 400 Bad Request, got %d", w.Result().StatusCode)
+	}
+}
+
+//DELETE /books/<ID>
+func TestDeleteBook_InvalidID(t *testing.T) {
+	req := httptest.NewRequest(http.MethodDelete, "/books/abc", nil)
+	w := httptest.NewRecorder()
+
+	api.BookDeleteHandler(w, req)
+
+	if w.Result().StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected 400 Bad Request, got %d", w.Result().StatusCode)
+	}
+}
+
+func TestDeleteBook_NotFound(t *testing.T) {
+	req := httptest.NewRequest(http.MethodDelete, "/books/999", nil)
+	w := httptest.NewRecorder()
+
+	api.BookDeleteHandler(w, req)
+
+	if w.Result().StatusCode != http.StatusNotFound {
+		t.Fatalf("expected 404 Not Found, got %d", w.Result().StatusCode)
+	}
+}
+
+
+func TestDeleteBook_Success(t *testing.T) {
+	// Create book
+	payload := `{"title": "Temp Book", "author": "Temp Author"}`
+	createReq := httptest.NewRequest(http.MethodPost, "/books", strings.NewReader(payload))
+	createReq.Header.Set("Content-Type", "application/json")
+	createW := httptest.NewRecorder()
+
+	api.BooksHandler(createW, createReq)
+
+	var createdBook api.Book
+	json.NewDecoder(createW.Body).Decode(&createdBook)
+
+	// Delete it
+	deleteReq := httptest.NewRequest(http.MethodDelete, "/books/"+strconv.Itoa(createdBook.ID), nil)
+	deleteW := httptest.NewRecorder()
+	api.BookDeleteHandler(deleteW, deleteReq)
+
+	if deleteW.Result().StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 OK, got %d", deleteW.Result().StatusCode)
 	}
 }
