@@ -1,25 +1,19 @@
-# syntax=docker/dockerfile:1
-
 FROM golang:1.24-alpine
 
-# Set up working directory
 WORKDIR /app
 
-# Install git (needed for go mod tidy in some cases)
+# Install necessary dependencies
 RUN apk add --no-cache git
 
-# Copy go.mod and go.sum, download dependencies
+# Copy go.mod and go.sum
 COPY go.mod go.sum ./
 RUN go mod tidy
 
-# Copy everything else
+# Copy the entire codebase
 COPY . ./
 
-# Ensure the test script is copied correctly and list files
-RUN ls -l /app
+# Set the working directory to the location of the tests
+WORKDIR /app/_tests
 
-# Ensure tests.sh is executable
-RUN chmod +x tests.sh
-
-# Default command: run tests.sh
-CMD ["./tests.sh"]
+# Run the Go test command
+CMD ["go", "test", "./api/api_test.go"]
