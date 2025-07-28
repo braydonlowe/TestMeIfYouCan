@@ -1,4 +1,4 @@
-package qa_api_tests
+package api
 
 import (
 	//"bytes"
@@ -35,6 +35,40 @@ func TestGetBooks_InitiallyEmpty(t *testing.T) {
 	}
 }
 
+
+func TestGetBooks_AfterMultipleCreates(t *testing.T) {
+	api.ResetBooks()
+
+	booksToCreate := []string{
+		`{"title": "Book One", "author": "Author A"}`,
+		`{"title": "Book Two", "author": "Author B"}`,
+	}
+
+	for _, b := range booksToCreate {
+		req := httptest.NewRequest(http.MethodPost, "/books", strings.NewReader(b))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		api.BooksHandler(w, req)
+		if w.Result().StatusCode != http.StatusCreated {
+			t.Fatalf("failed to create book: %s", b)
+		}
+	}
+
+	// Check they were stored
+	req := httptest.NewRequest(http.MethodGet, "/books", nil)
+	w := httptest.NewRecorder()
+	api.BooksHandler(w, req)
+
+	var books []api.Book
+	if err := json.NewDecoder(w.Body).Decode(&books); err != nil {
+		t.Fatalf("failed to decode books: %v", err)
+	}
+	if len(books) != 2 {
+		t.Fatalf("expected 2 books, got %d", len(books))
+	}
+}
+
+
 //POST /books
 func TestCreateBook_Valid(t *testing.T) {
 	payload := `{
@@ -66,6 +100,20 @@ func TestCreateBook_Valid(t *testing.T) {
 
 func TestCreateBook_missingTitle(t *testing.T) {
 	payload := `{"author": "No Title"}`
+	req := httptest.NewRequest(http.MethodPost, "/books", strings.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	api.BooksHandler(w, req)
+
+	if w.Result().StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected 400 Bad Request, got %d", w.Result().StatusCode)
+	}
+}
+
+func TestCreateBook_MissingAuthor(t *testing.T) {
+	api.ResetBooks()
+	payload := `{"title": "Missing Author"}`
 	req := httptest.NewRequest(http.MethodPost, "/books", strings.NewReader(payload))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -113,6 +161,17 @@ func TestDeleteBook_NotFound(t *testing.T) {
 	}
 }
 
+func TestDeleteBook_MethodNotAllowed(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPost, "/books/1", nil) // Should be DELETE
+	w := httptest.NewRecorder()
+	api.BookDeleteHandler(w, req)
+
+	if w.Result().StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("expected 405 Method Not Allowed, got %d", w.Result().StatusCode)
+	}
+}
+
+
 
 func TestDeleteBook_Success(t *testing.T) {
 	// Create book
@@ -135,3 +194,17 @@ func TestDeleteBook_Success(t *testing.T) {
 		t.Fatalf("expected 200 OK, got %d", deleteW.Result().StatusCode)
 	}
 }
+
+
+//BooksHandler test
+
+func TestBooksHandler_MethodNotAllowed(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPut, "/books", nil) // Unsupported method
+	w := httptest.NewRecorder()
+	api.BooksHandler(w, req)
+
+	if w.Result().StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("expected 405 Method Not Allowed, got %d", w.Result().StatusCode)
+	}
+}
+

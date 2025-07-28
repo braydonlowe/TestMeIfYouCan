@@ -1,6 +1,5 @@
 package api
 
-
 import (
     "encoding/json"
     "log"
