@@ -5,21 +5,21 @@ FROM golang:1.24-alpine
 # Set up working directory
 WORKDIR /app
 
-# Install git (needed for some go get packages)
+# Install git (needed for go mod tidy in some cases)
 RUN apk add --no-cache git
 
-# Copy go.mod and go.sum first for better caching
+# Copy go.mod and go.sum, download dependencies
 COPY go.mod go.sum ./
 RUN go mod tidy
 
-# Copy the rest of the application
-COPY . .
+# Copy everything else
+COPY . ./
 
-# Explicitly copy the tests.sh
-COPY tests.sh ./
+# Ensure the test script is copied correctly and list files
+RUN ls -l /app
 
-# Ensure test script is executable (optional, if you use run-tests.sh)
+# Ensure tests.sh is executable
 RUN chmod +x tests.sh
 
-# Default command: run the test script (you can still override this in GitHub Actions or locally)
+# Default command: run tests.sh
 CMD ["./tests.sh"]
