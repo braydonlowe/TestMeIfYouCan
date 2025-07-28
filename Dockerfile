@@ -16,7 +16,7 @@ RUN go mod tidy
 COPY . .
 
 # Ensure test script is executable (optional, if you use run-tests.sh)
-RUN chmod +x run-tests.sh
+RUN chmod +x tests.sh
 
 # Default command: run the test script (you can still override this in GitHub Actions or locally)
 CMD ["./tests.sh"]
