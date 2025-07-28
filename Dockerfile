@@ -15,6 +15,9 @@ RUN go mod tidy
 # Copy the rest of the application
 COPY . .
 
+# Explicitly copy the tests.sh
+COPY tests.sh ./
+
 # Ensure test script is executable (optional, if you use run-tests.sh)
 RUN chmod +x tests.sh
 
