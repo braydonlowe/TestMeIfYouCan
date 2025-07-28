@@ -14,7 +14,16 @@ var (
     books       = []Book{}
     nextID      = 1
     booksMutex sync.Mutex
+    //For concurrency I could use sync.RWMutex then lock or unlock read or write
 )
+
+//Since I defined this file, I've added this. I'll test at scale as well, but I want to test everything individually.
+func ResetBooks() {
+	booksMutex.Lock()
+	defer booksMutex.Unlock()
+	books = []Book{}
+	nextID = 1
+}
 
 //Handlers:
 func BooksHandler(w http.ResponseWriter, r *http.Request) {
