@@ -103,7 +103,7 @@ type Book struct {
     Author string `json:"author"` 
 } 
  
-func main() { 
+func Main() { 
     http.HandleFunc("/books", BooksHandler)       // GET & POST 
     http.HandleFunc("/books/", BookDeleteHandler) // DELETE 
     http.Handle("/", http.FileServer(http.Dir("./ui"))) 

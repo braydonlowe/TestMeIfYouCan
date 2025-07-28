@@ -9,6 +9,10 @@ import (
 	"strings"
 	"testing"
 	"github.com/braydonlowe/TestMeIfYouCan/api"
+	//Used in the load testing
+	//"sync"
+	//"time"
+	//"fmt"
 )
 
 
@@ -207,4 +211,54 @@ func TestBooksHandler_MethodNotAllowed(t *testing.T) {
 		t.Fatalf("expected 405 Method Not Allowed, got %d", w.Result().StatusCode)
 	}
 }
+
+
+//Load testing:
+/*
+func TestLoadEndpoint(t *testing.T) {
+	const (
+		concurrency = 50
+		totalRequests = 500
+		url = "http://localhost:5000/books"
+	)
+
+	var wg sync.WaitGroup
+	start := time.Now()
+
+	// Channel to collect any failed requests
+	errChan := make(chan error, totalRequests)
+
+	for i := 0; i < totalRequests; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			resp, err := http.Get(url)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				errChan <- fmt.Errorf("Non-200 response: %d", resp.StatusCode)
+			}
+		}()
+
+		// Optional throttling to avoid bursting everything instantly
+		if i % concurrency == 0 {
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	if len(errChan) > 0 {
+		t.Errorf("Received %d errors during load test", len(errChan))
+	}
+
+	t.Logf("Completed %d requests in %s", totalRequests, time.Since(start))
+}
+*/
+
+
 
